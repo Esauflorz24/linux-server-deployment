@@ -6,8 +6,8 @@
 Este documento detalla la implementación y configuración 
 integral de un servidor 
 empresarial basado en Debian Linux.
- El proyecto abarca desde la configuración inicial de red y enrutamiento,
- hasta la implementación de servicios críticos (DNS y DHCP), 
+El proyecto abarca desde la configuración inicial de red y enrutamiento,
+hasta la implementación de servicios críticos (DNS y DHCP), 
 gestión de almacenamiento de alto rendimiento mediante arreglos RAID 5+0, 
 y el fortalecimiento de la seguridad del 
 servidor (SSH Hardening y entornos SFTP enjaulados). 
@@ -19,7 +19,7 @@ arquitectura de servicios de red y aplicación de políticas de seguridad.
 ---
 
 ## 1. Gestión de Usuarios y Privilegios
-**Objetivo:** Establecer un usuario administrador dedicado para tareas de mantenimiento, monitoreo, automatización y diagnóstico, reduciendo la dependencia del usuario `root` por motivos de seguridad.
+Creamos un usuario administrador dedicado para tareas de mantenimiento, monitoreo, automatización y diagnóstico, reduciendo la dependencia del usuario `root` por motivos de seguridad.
 
 ```bash
 # Creación del usuario y asignación de contraseña
@@ -33,7 +33,7 @@ usermod -aG sudo admin
 ---
 
 ## 2. Configuración de Redes (Migración a Netplan y Systemd-networkd)
-**Objetivo:** Modernizar la gestión de interfaces de red migrando del tradicional `ifupdown` a `systemd-networkd` y `Netplan`, estandarizando la configuración de red mediante YAML para mayor escalabilidad.
+Modernizamos la gestión de interfaces de red migrando del tradicional `ifupdown` a `systemd-networkd` y `Netplan`, estandarizando la configuración de red mediante YAML para mayor escalabilidad.
 
 ### Habilitación de servicios modernos
 ```bash
@@ -52,7 +52,7 @@ apt purge ifupdown resolvconf && rm -rf /etc/network
 ```
 
 ### Configuración de Netplan (`/etc/netplan/10-ifupdown.yaml`)
-Se define la interfaz externa (`enp1s0`) por DHCP y la interfaz interna aislada (`enp7s0`) con una IP estática para la red local (`192.168.50.1/24`).
+Definimos la interfaz externa (`enp1s0`) por DHCP y la interfaz interna aislada (`enp7s0`) con una IP estática para la red local (`192.168.50.1/24`).
 
 ```yaml
 network:
@@ -70,7 +70,7 @@ network:
 ---
 
 ## 3. Enrutamiento y NAT (IP Forwarding & Iptables)
-**Objetivo:** Convertir el servidor en un enrutador para proporcionar salida a Internet a los clientes de la red aislada, aplicando reglas de traducción de direcciones de red (NAT).
+Convertimos el servidor en un enrutador para proporcionar salida a Internet a los clientes de la red aislada, aplicando reglas de traducción de direcciones de red (NAT).
 
 ```bash
 # 1. Habilitar el reenvío de paquetes IPv4
@@ -89,7 +89,7 @@ netfilter-persistent save
 ---
 
 ## 4. Servidor DNS (BIND9)
-**Objetivo:** Implementar un servidor DNS para resolución local (zonas directas e inversas para `debianserver.com`) y actuar como caché para peticiones externas, optimizando el tráfico de red.
+Implementamos un servidor DNS para resolución local (zonas directas e inversas para `debianserver.com`) y actuar como caché para peticiones externas, optimizando el tráfico de red.
 
 ```bash
 # Instalación de dependencias
@@ -140,7 +140,7 @@ systemctl status bind9.service
 ---
 
 ## 5. Servidor DHCP (ISC-DHCP-Server)
-**Objetivo:** Automatizar la asignación de direcciones IP, puerta de enlace y DNS a los equipos clientes conectados a la interfaz interna (`enp7s0`).
+Automatizamos la asignación de direcciones IP, puerta de enlace y DNS a los equipos clientes conectados a la interfaz interna (`enp7s0`).
 
 ```bash
 apt install isc-dhcp-server
@@ -170,7 +170,7 @@ systemctl restart isc-dhcp-server.service
 ---
 
 ## 6. Almacenamiento de Alto Rendimiento (RAID 5+0)
-**Objetivo:** Crear un volumen lógico robusto utilizando la utilidad `mdadm` para combinar las ventajas de paridad (tolerancia a fallos de RAID 5) y distribución de datos (rendimiento de RAID 0).
+Creamos un volumen lógico robusto utilizando la utilidad `mdadm` para combinar las ventajas de paridad (tolerancia a fallos de RAID 5) y distribución de datos (rendimiento de RAID 0).
 
 ```bash
 # Instalación de mdadm
@@ -195,7 +195,7 @@ mount /dev/md0 /mnt/raid50/
 ---
 
 ## 7. Entorno Enjaulado para Transferencia de Archivos (SFTP Chroot)
-**Objetivo:** Proveer un espacio seguro de almacenamiento de archivos compartido restringiendo el acceso del usuario mediante `chroot`, evitando que navegue por el sistema de archivos principal o inicie sesiones de terminal.
+Creamos un espacio seguro de almacenamiento de archivos compartido restringiendo el acceso del usuario mediante `chroot`, evitando que navegue por el sistema de archivos principal o inicie sesiones de terminal.
 
 ```bash
 # 1. Crear usuario sin acceso a shell (/bin/false)
@@ -225,7 +225,7 @@ Match User ftpuser
 ---
 
 ## 8. Fortalecimiento de Seguridad (SSH Hardening)
-**Objetivo:** Incrementar la seguridad del acceso remoto al servidor utilizando autenticación mediante criptografía de curva elíptica (ED25519), mitigando ataques de fuerza bruta.
+Incrementamos la seguridad del acceso remoto al servidor utilizando autenticación mediante criptografía (ED25519), mitigando ataques de fuerza bruta.
 
 ```bash
 # 1. Generación de par de llaves criptográficas de alta seguridad
