@@ -213,7 +213,7 @@ chmod 755 /mnt/raid50/compartido/archivos/
 ```
 
 ### Configuración en `/etc/ssh/sshd_config`
-```ssh-config
+```sshd-config
 Match User ftpuser
     ForceCommand internal-sftp
     ChrootDirectory /mnt/raid50/compartido
@@ -233,4 +233,99 @@ ssh-keygen -t ed25519 -C "admin_keys"
 
 # 2. Exportar la llave pública al servidor remoto
 ssh-copy-id admin@192.168.122.104
+
+# 3. Despues de configurar la llave publica, creamos una copia de respaldo
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+
+# 4. Despues de cada cambio, probamos la configuración
+sshd -t
+
+# 5. Si el comando no muestra ninguna salida, la configuración es válida. Despues reiniciamos el servicio SSH
+
+systemctl restart ssh
+systemctl restart sshd
+
 ```
+
+
+### Editamos el archivo `/etc/ssh/sshd_config/`
+
+La autenticación basada en llaves es mas segura a comparación de la autenticacion por contraseña
+```sshd-config
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+```
+
+Deshabilitados el acceso del usuario root
+```sshd-config
+PermitRootLogin no
+```
+(OPCIONAL) Permitirmos el acceso por root solamente por llave SSH
+```sshd-config
+PermitRootLogin prohibit-password
+```
+Cambiamos el puerto por defecto
+```sshd-config
+Port 2222
+```
+Permitimos el acceso solo al usuario admin
+```sshd-config
+AllowUsers admin
+```
+(OPCIONAL) Permitimos el acceso solo por grupos Ej:sshusers
+
+***IMPORTANTE: crear el grupo y los usuarios en el. De lo contrario, no habra acceso.***
+```sshd-config
+ AllowGroups sshusers
+```
+Desactivamos las contraseñas vacias
+```sshd-config
+PermitEmptyPasswords no
+```
+Definimos 30 segundos de espera para que el usuario se autentique
+```sshd-config
+LoginGraceTime 30
+```
+Limitamos los intentos de autenticación
+```sshd-config
+MaxAuthTries 3
+```
+Desactivamos X11Forwarding
+```sshd-config
+X11Forwarding no
+```
+Desactivamos el uso de agentes para servidores remotos
+```sshd-config
+AllowAgentForwarding no
+```
+Desactivamos el uso de tuneles SSH
+```sshd-config
+AllowTcpForwarding no
+```
+
+
+Permitimos un tiempo maximo de 10 minutos para sesiones inactivas
+```sshd-config
+ClientAliveInterval 300
+ClientAliveCountMax 2
+```
+
+Creamos un banner y le agregamos un mensaje
+```bash
+>/etc/ssh/banner
+echo "Authorized access only. All activity is monitored and logged." >> /etc/ssh/banner
+```
+
+Habilitamos el banner en `/etc/ssh/sshd_config`
+```sshd
+Banner /etc/ssh/banner
+```
+
+
+### Comprobación
+Ejecutamos el comando `sshd -t` para verificar si hay errores de syntaxis
+```bash
+sshd -t 
+```
+Si la salida no muestra ningun texto, la configuración esta bien.
