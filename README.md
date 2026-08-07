@@ -161,7 +161,7 @@ subnet 192.168.50.0 netmask 255.255.255.0 {
 
 ```bash
 # Definir la interfaz de escucha en /etc/default/isc-dhcp-server
-# INTERFACESv4="enp7s0"
+INTERFACESv4="enp7s0"
 
 # Reiniciar servicio
 systemctl restart isc-dhcp-server.service
@@ -329,3 +329,53 @@ Ejecutamos el comando `sshd -t` para verificar si hay errores de syntaxis
 sshd -t 
 ```
 Si la salida no muestra ningun texto, la configuración esta bien.
+
+---
+## Fail2Ban
+Añadimos una capa extra de seguridad a SSH, con fail2ban los ataques de fuerza bruta no tendran mucho sentido
+
+```bash
+# Instalamos el paquete
+apt install fail2ban
+
+# Creamos el archivo sshd.local
+>/etc/fail2ban/jail.d/sshd.local
+
+```
+
+Añadimos las siguientes lineas al archivo
+
+```
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+maxretry = 3
+bantime = 3600
+findtime = 600
+port = 2222
+```
+
+Iniciamos y habilitamos el servicio
+
+```bash
+systemctl enable fail2ban && systemctl start fail2ban
+```
+
+
+Para verificar el estatus 
+```bash
+fail2ban-client status sshd
+```
+
+___
+## Apache
+
+Instalamos el servicio 
+```bash
+apt install apache2 -y
+```
+Verificamos si esta activo 
+```bash
+systemctl status apache2 --no-pager
+```
