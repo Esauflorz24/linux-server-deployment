@@ -82,8 +82,6 @@ iptables -t nat -A POSTROUTING -o enp1s0 -j MASQUERADE
 iptables -A FORWARD -i enp7s0 -o enp1s0 -j ACCEPT
 iptables -A FORWARD -i enp1s0 -o enp7s0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 
-# 3. Hacer las reglas persistentes ante reinicios
-netfilter-persistent save
 ```
 
 ---
@@ -330,43 +328,7 @@ sshd -t
 ```
 Si la salida no muestra ningun texto, la configuración esta bien.
 
----
-## Fail2Ban
-Añadimos una capa extra de seguridad a SSH, con fail2ban los ataques de fuerza bruta no tendran mucho sentido
 
-```bash
-# Instalamos el paquete
-apt install fail2ban
-
-# Creamos el archivo sshd.local
->/etc/fail2ban/jail.d/sshd.local
-
-```
-
-Añadimos las siguientes lineas al archivo
-
-```
-[sshd]
-enabled = true
-port = ssh
-filter = sshd
-maxretry = 3
-bantime = 3600
-findtime = 600
-port = 2222
-```
-
-Iniciamos y habilitamos el servicio
-
-```bash
-systemctl enable fail2ban && systemctl start fail2ban
-```
-
-
-Para verificar el estatus 
-```bash
-fail2ban-client status sshd
-```
 
 ___
 ## Apache
@@ -378,4 +340,148 @@ apt install apache2 -y
 Verificamos si esta activo 
 ```bash
 systemctl status apache2 --no-pager
+```
+
+---
+## Fail2Ban
+Añadimos una capa extra de seguridad a SSH y apache, con fail2ban diversos ataques no tendrán mucho sentido
+
+### SSH
+
+```bash
+# Instalamos el paquete
+apt install fail2ban
+
+# Creamos el archivo sshd.local
+>/etc/fail2ban/jail.d/sshd.local
+
+```
+
+### Añadimos las siguientes lineas al archivo `/etc/fail2ban/jail.d/sshd.local`
+
+```
+[sshd]
+enabled = true
+filter = sshd
+maxretry = 3
+bantime = 3600
+findtime = 600
+port = 2222
+```
+
+### Apache
+
+
+```bash
+# La documentación de fail2ban recomienda hacer todos los cambios en el archivo jail.local
+
+>/etc/fail2ban/jail.local
+```
+
+### Agregamos las siguientes reglas en `/etc/fail2ban/jail.local`
+```
+# Bloquea intentos de adivinar contraseñas (si usas autenticación básica en Apache)
+[apache-auth]
+enabled  = true
+port     = http,https
+logpath  = %(apache_error_log)s
+maxretry = 3
+
+# Bloquea bots conocidos por buscar vulnerabilidades o hacer spam
+[apache-badbots]
+enabled  = true
+port     = http,https
+logpath  = %(apache_access_log)s
+bantime  = 48h
+maxretry = 1
+
+# Bloquea IPs que buscan scripts maliciosos (ej. .php que no existen)
+[apache-noscript]
+enabled  = true
+port     = http,https
+logpath  = %(apache_error_log)s
+maxretry = 3
+
+# Bloquea intentos de desbordamiento de búfer (ataques complejos)
+[apache-overflows]
+enabled  = true
+port     = http,https
+logpath  = %(apache_error_log)s
+maxretry = 2
+
+# Bloquea a quienes buscan directorios /home ocultos
+[apache-nohome]
+enabled  = true
+port     = http,https
+logpath  = %(apache_error_log)s
+maxretry = 2
+```
+
+### Iniciamos y habilitamos el servicio
+
+```bash
+systemctl enable fail2ban && systemctl start fail2ban
+```
+
+
+### Para verificar el estatus 
+```bash
+fail2ban-client status
+```
+
+
+___
+## Ufw
+
+```bash
+# instalamos el paquete
+apt intall ufw -y
+```
+
+### Asignamos la siguiente regla para NAT en `/etc/ufw/before.rules`
+```
+*nat
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -o enp1s0 -j MASQUERADE
+COMMIT
+```
+
+### Permitimos el reenvio (forwarding) en la configuración de UFW `/etc/default/ufw`
+```
+DEFAULT_FORWARD_POLICY="ACCEPT"
+```
+
+### Permitimos los servicios locales
+
+```bash
+# SSH
+ufw allow 2222/tcp
+
+# Permitir DNS y DHCP solo desde la interfaz de red interna (LAN - enp7s0)
+# Esto evita exponer tus servicios a la WAN (enp1s0)
+
+ufw allow in on enp7s0 to any port 53
+ufw allow in on enp7s0 to any port 67 proto udp
+
+# Apache2
+ufw allow in on enp7s0 to any app 'Apache Full'
+```
+
+### Habilitamos el enrutamiento entre las tarjetas de red
+
+```bash
+# Permitir tráfico desde la LAN a la WAN
+ufw route allow in on enp7s0 out on enp1s0
+```
+
+### Deshabilitamos y detenemos netfilter-persistent
+```bash
+systemctl disable netfilter-persistent
+systemctl stop netfilter-persistent
+
+```
+
+### Recargamos fail2ban
+```bash
+systemctl restart fail2ban
 ```
