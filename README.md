@@ -431,11 +431,6 @@ apt install ufw -y
 COMMIT
 ```
 
-### Permitimos el reenvio (forwarding) en la configuración de UFW `/etc/default/ufw`
-```
-DEFAULT_FORWARD_POLICY="ACCEPT"
-```
-
 ### Permitimos los servicios locales
 
 ```bash
@@ -463,7 +458,6 @@ ufw route allow in on enp7s0 out on enp1s0
 ```
 net/ipv4/ip_forward=1
 ```
-
 
 
 ### Deshabilitamos y detenemos netfilter-persistent
