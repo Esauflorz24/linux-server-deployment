@@ -67,22 +67,7 @@ network:
 ```
 *Aplicar cambios con un reinicio o `netplan apply`.*
 
----
 
-## 3. Enrutamiento y NAT (IP Forwarding & Iptables)
-Convertimos el servidor en un enrutador para proporcionar salida a Internet a los clientes de la red aislada, aplicando reglas de traducción de direcciones de red (NAT).
-
-```bash
-# 1. Habilitar el reenvío de paquetes IPv4
-echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-ipforwarding.conf
-sysctl --system
-
-# 2. Configurar reglas de enrutamiento y NAT con iptables
-iptables -t nat -A POSTROUTING -o enp1s0 -j MASQUERADE
-iptables -A FORWARD -i enp7s0 -o enp1s0 -j ACCEPT
-iptables -A FORWARD -i enp1s0 -o enp7s0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-
-```
 
 ---
 
@@ -267,9 +252,9 @@ Cambiamos el puerto por defecto
 ```sshd-config
 Port 2222
 ```
-Permitimos el acceso solo al usuario admin
+Permitimos el acceso solo a los usuarios admin y ftpuser
 ```sshd-config
-AllowUsers admin
+AllowUsers admin ftpuser
 ```
 (OPCIONAL) Permitimos el acceso solo por grupos Ej:sshusers
 
@@ -331,7 +316,7 @@ Si la salida no muestra ningun texto, la configuración esta bien.
 
 
 ___
-## Apache
+## 9. Apache
 
 Instalamos el servicio 
 ```bash
@@ -343,7 +328,7 @@ systemctl status apache2 --no-pager
 ```
 
 ---
-## Fail2Ban
+## 10. Fail2Ban
 Añadimos una capa extra de seguridad a SSH y apache, con fail2ban diversos ataques no tendrán mucho sentido
 
 ### SSH
@@ -431,11 +416,11 @@ fail2ban-client status
 
 
 ___
-## Ufw
+## 11. UFW 
 
 ```bash
 # instalamos el paquete
-apt intall ufw -y
+apt install ufw -y
 ```
 
 ### Asignamos la siguiente regla para NAT en `/etc/ufw/before.rules`
@@ -473,12 +458,24 @@ ufw allow in on enp7s0 to any app 'Apache Full'
 # Permitir tráfico desde la LAN a la WAN
 ufw route allow in on enp7s0 out on enp1s0
 ```
+### Habilitamos el enrutamiento a nivel de kernel en el archivo `/etc/ufw/sysctl.conf` descomentanto la siguiente linea
+
+```
+net/ipv4/ip_forward=1
+```
+
+
 
 ### Deshabilitamos y detenemos netfilter-persistent
 ```bash
 systemctl disable netfilter-persistent
 systemctl stop netfilter-persistent
 
+```
+### Recargamos el firewall
+```bash
+ufw disable
+ufw enable
 ```
 
 ### Recargamos fail2ban
