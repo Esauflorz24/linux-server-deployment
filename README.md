@@ -317,6 +317,7 @@ Si la salida no muestra ningun texto, la configuración esta bien.
 
 ___
 ## 9. Apache
+Instalamos y habilitamos un servidor web. El cual, proporcionara información al usuario final.
 
 Instalamos el servicio 
 ```bash
@@ -417,7 +418,7 @@ fail2ban-client status
 
 ___
 ## 11. UFW 
-
+Con UFW habilitaremos los puertos solamente para los servicios necesarios. Adicional a eso, activaremos las reglas de enrutamiento entre redes y a nivel de kernel.
 ```bash
 # instalamos el paquete
 apt install ufw -y
