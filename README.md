@@ -193,7 +193,24 @@ chmod 755 /mnt/raid50/compartido/
 mkdir -p /mnt/raid50/compartido/archivos
 chown ftpuser:ftpuser /mnt/raid50/compartido/archivos/
 chmod 755 /mnt/raid50/compartido/archivos/
-```
+
+# 4. Autorizar llave SSH manualmente para el usuario SFTP
+# Como el usuario tiene /bin/false, no se puede usar ssh-copy-id. 
+# LA LLAVE PUBLICA (CREADA EN LA MAQUINA CLIENTE) DEBE PEGARSE MANUALMENTE
+
+# 5. Crear el directorio oculto ssh en el home del usuario
+mkdir -p /home/ftpuser/.ssh
+
+# 6. Creamos el archivo de las llaves autorizadas
+touch /home/ftpuser/.ssh/authorized_keys
+
+# 7. aqui debes abrir el archivo con nano y pegar la llave publica del cliente
+nano /home/ftpuser/.ssh/authorized_keys
+
+# 8. Asignamos permisos estrictos requeridos por el servicio SSH
+chown -R ftpuser:ftpuser /home/ftpuser/.ssh
+chmod 700 /home/ftpuser/.ssh
+chmod 600 /home/ftpuser/.ssh/authorized_keys
 
 ### Configuración en `/etc/ssh/sshd_config`
 ```sshd-config
@@ -217,6 +234,10 @@ ssh-keygen -t ed25519 -C "admin_keys"
 # 2. Exportar la llave pública al servidor remoto
 ssh-copy-id admin@192.168.122.104
 
+> NOTA: El comando ssh-copy-id solo funciona para usuarios con acceso a terminal. 
+> Para usuarios con /bin/false (como ftpuser), la llave debe copiarse 
+> manualmente en /home/usuario/.ssh/authorized_keys.
+
 # 3. Despues de configurar la llave publica, creamos una copia de respaldo
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
 
@@ -229,7 +250,6 @@ systemctl restart ssh
 systemctl restart sshd
 
 ```
-
 
 ### Editamos el archivo `/etc/ssh/sshd_config/`
 
