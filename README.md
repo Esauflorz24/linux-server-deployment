@@ -1,6 +1,15 @@
 # Configuración de Infraestructura de Servidor Debian: Redes, Apache, SFTP, Fail2Ban, DNS, DHCP, RAID 5+0 y Seguridad SSH
+![Debian](https://img.shields.io/badge/Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white)  ![Apache](https://img.shields.io/badge/Apache-D22128?style=for-the-badge&logo=Apache&logoColor=white) ![Bash](https://img.shields.io/badge/Bash-4EAA25?style=for-the-badge&logo=GNU%20Bash&logoColor=white)
+![SFTP](https://img.shields.io/badge/SFTP-00599C?style=for-the-badge&logo=openssh&logoColor=white)
+![Fail2ban](https://img.shields.io/badge/Fail2ban-FF6C37?style=for-the-badge&logo=shield&logoColor=white)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+![Windows 10](https://img.shields.io/badge/Windows_10-0078D6?style=for-the-badge&logo=windows10&logoColor=white)
+![SSH](https://img.shields.io/badge/SSH-000000?style=for-the-badge&logo=openssh&logoColor=white)
+![DHCP](https://img.shields.io/badge/DHCP-412991?style=for-the-badge&logo=dhcp&logoColor=white)
+![DNS](https://img.shields.io/badge/DNS-1976D2?style=for-the-badge&logo=dns&logoColor=white)
 
 **Estado del Proyecto:** en proceso  | **Rol:** Administrador de Sistemas / Ingeniero de Redes
+
 
 ## Descripción del Proyecto
 Este documento detalla la implementación y configuración 
@@ -493,7 +502,20 @@ ufw disable
 ufw enable
 ```
 
+
 ### Recargamos fail2ban
 ```bash
 systemctl restart fail2ban
 ```
+
+___
+
+## Pruebas y ensayos
+La implementación se validó utilizando dos maquinas clientes: Windows 10 y Ubuntu 25.10 dentro de la misma red virtual, Los casos de pruebas exitosos incluyeron
+1. Enrutamiento entre dos interfazes de red 
+2. Asignación dinámica de IP y asignación de sufijo DNS mediante DHCP
+3. Enmascaramiento NAT, donde las solicitudes provenientes de los clientes de la red aislada son traducidas y enviadas hacia internet mediante el servidor 
+4. DNS exitoso mediante pruebas con el comando `ping` y `nslookup`
+5. Acceso remoto seguro mediante "SSH hardening"
+6. Transferencia segura de archivos mediante SFTP al arreglo RAID 50
+7. Visualización correcta de la página web interna alojada en Apache.
