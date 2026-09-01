@@ -531,7 +531,7 @@ ___
 *  *Servidor web apache2*
 *  *Subida de archivos al arreglo RAID 50*
 
-*Se han archivado en el directorio `docs/debian.pdf`*
+*Se han archivado en el directorio `docs/client.pdf`*
 
 *De igual manera la configuracion de SFTP y SSH se encuentran en `docs/SFTP.pdf` y `docs/SSH.pdf`*
 
