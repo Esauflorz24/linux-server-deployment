@@ -519,3 +519,21 @@ La implementación se validó utilizando dos maquinas clientes: Windows 10 y Ubu
 5. Acceso remoto seguro mediante "SSH hardening"
 6. Transferencia segura de archivos mediante SFTP al arreglo RAID 50
 7. Visualización correcta de la página web interna alojada en Apache.
+
+___
+
+## Notas para el repositorio
+*Las capturas de pantalla que muestran:*
+*  *Resolución DNS*
+*  *Acceso de SFTP*
+*  *Acceso SSH*
+*  *Asignacion de IPs mediante DHCP*
+*  *Servidor web apache2*
+*  *Subida de archivos al arreglo RAID 50*
+
+*Se han archivado en el directorio `docs/debian.pdf`*
+
+*De igual manera la configuracion de SFTP y SSH se encuentran en `docs/SFTP.pdf` y `docs/SSH.pdf`*
+
+*Los archivos de configuracion de SSH, DHCP, DNS, Fail2Ban, Netplan se encuentran en el directorio `configs/`*
+
