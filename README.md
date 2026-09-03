@@ -121,7 +121,48 @@ zone "50.168.192.in-addr.arpa" IN {
 };
 ```
 
-*(Se configuran los archivos de zona `db.debianserver.com` y `db.192.168.50` con los registros A, NS y PTR correspondientes).*
+### Configuración archivo `/etc/bind/db.debianserver.com`
+```
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL	604800
+@	IN	SOA	ns1.debianserver.com. admin.debianserver.com. (
+			      1		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	ns1.debianserver.com.
+
+ns1 IN	A 192.168.50.1
+@	  IN	A 192.168.50.1
+www IN	A 192.168.50.1
+ftp IN	A 192.168.50.1
+```
+
+### Configuración archivo `/etc/bind/db.192.168.50`
+```
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL	604800
+@	IN	SOA	ns1.debianserver.com. admin.debianserver.com. (
+			      1		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	ns1.debianserver.com.
+
+1 IN PTR debianserver.com.
+1 IN PTR www.debianserver.com.
+1 IN PTR ftp.debianserver.com.
+
+```
+
 
 ```bash
 # Reiniciar y verificar el servicio
