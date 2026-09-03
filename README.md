@@ -1,4 +1,4 @@
-# Configuración de Infraestructura de Servidor Debian: Redes, Apache, SFTP, Fail2Ban, DNS, DHCP, RAID 5+0 y Seguridad SSH
+# Debian Server Infrastructure Configuration: Networking, Apache, SFTP, Fail2Ban, DNS, DHCP, RAID 5+0, and SSH Security
 ![Debian](https://img.shields.io/badge/Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white)  ![Apache](https://img.shields.io/badge/Apache-D22128?style=for-the-badge&logo=Apache&logoColor=white) ![Bash](https://img.shields.io/badge/Bash-4EAA25?style=for-the-badge&logo=GNU%20Bash&logoColor=white)
 ![SFTP](https://img.shields.io/badge/SFTP-00599C?style=for-the-badge&logo=openssh&logoColor=white)
 ![Fail2ban](https://img.shields.io/badge/Fail2ban-FF6C37?style=for-the-badge&logo=shield&logoColor=white)
@@ -8,60 +8,57 @@
 ![DHCP](https://img.shields.io/badge/DHCP-412991?style=for-the-badge&logo=dhcp&logoColor=white)
 ![DNS](https://img.shields.io/badge/DNS-1976D2?style=for-the-badge&logo=dns&logoColor=white)
 
-**Estado del Proyecto:** en proceso  | **Rol:** Administrador de Sistemas / Ingeniero de Redes
+**Project Status:** in progress  | **Role:** Systems Administrator / Network Engineer
 
 
-## Descripción del Proyecto
-Este documento detalla la implementación y configuración 
-integral de un servidor 
-empresarial basado en Debian Linux.
-El proyecto abarca desde la configuración inicial de red y enrutamiento,
-hasta la implementación de servicios críticos (DNS y DHCP), 
-gestión de almacenamiento de alto rendimiento mediante arreglos RAID 5+0, 
-y el fortalecimiento de la seguridad del 
-servidor (SSH Hardening y entornos SFTP enjaulados). 
+## Project Description
+This document details the implementation and comprehensive configuration of a Debian Linux-based enterprise server.
+The project covers everything from initial network and routing configuration,
+to the implementation of critical services (DNS and DHCP), 
+high-performance storage management via RAID 5+0 arrays, 
+and server security hardening (SSH Hardening and chrooted SFTP environments). 
 
-Este repositorio sirve como demostración técnica de competencias 
-en administración de sistemas Linux, 
-arquitectura de servicios de red y aplicación de políticas de seguridad.
+This repository serves as a technical demonstration of competencies 
+in Linux systems administration, 
+network services architecture, and the application of security policies.
 
 ---
 
-## 1. Gestión de Usuarios y Privilegios
-Creamos un usuario administrador dedicado para tareas de mantenimiento, monitoreo, automatización y diagnóstico, reduciendo la dependencia del usuario `root` por motivos de seguridad.
+## 1. User and Privilege Management
+We create a dedicated administrator user for maintenance, monitoring, automation, and diagnostic tasks, reducing reliance on the `root` user for security reasons.
 
 ```bash
-# Creación del usuario y asignación de contraseña
+# User creation and password assignment
 useradd -m -s /bin/bash admin
 passwd admin
 
-# Asignación de privilegios de superusuario
+# Superuser privilege assignment
 usermod -aG sudo admin
 ```
 
 ---
 
-## 2. Configuración de Redes (Migración a Netplan y Systemd-networkd)
-Modernizamos la gestión de interfaces de red migrando del tradicional `ifupdown` a `systemd-networkd` y `Netplan`, estandarizando la configuración de red mediante YAML para mayor escalabilidad.
+## 2. Network Configuration (Migration to Netplan and Systemd-networkd)
+We modernized network interface management by migrating from the traditional `ifupdown` to `systemd-networkd` and `Netplan`, standardizing network configuration using YAML for greater scalability.
 
-### Habilitación de servicios modernos
+### Enabling modern services
 ```bash
-# Desenmascarar y habilitar servicios de systemd para gestión de red y resolución DNS
+# Unmask and enable systemd services for network management and DNS resolution
 systemctl unmask systemd-networkd.service
 systemctl enable systemd-networkd.service
 
-# Instalar y configurar systemd-resolved
+# Install and configure systemd-resolved
 apt install systemd-resolved -y
 systemctl enable systemd-resolved.service
 ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
-# Deshabilitar y purgar el antiguo gestor de red
+# Disable and purge the old network manager
 systemctl mask networking
 apt purge ifupdown resolvconf && rm -rf /etc/network
 ```
 
-### Configuración de Netplan (`/etc/netplan/10-ifupdown.yaml`)
-Definimos la interfaz externa (`enp1s0`) por DHCP y la interfaz interna aislada (`enp7s0`) con una IP estática para la red local (`192.168.50.1/24`).
+### Netplan Configuration (`/etc/netplan/10-ifupdown.yaml`)
+We define the external interface (`enp1s0`) via DHCP and the isolated internal interface (`enp7s0`) with a static IP for the local network (`192.168.50.1/24`).
 
 ```yaml
 network:
@@ -74,21 +71,21 @@ network:
       dhcp4: false
       addresses: [192.168.50.1/24]
 ```
-*Aplicar cambios con un reinicio o `netplan apply`.*
+*Apply changes with a reboot or `netplan apply`.*
 
 
 
 ---
 
-## 4. Servidor DNS (BIND9)
-Implementamos un servidor DNS para resolución local (zonas directas e inversas para `debianserver.com`) y actuar como caché para peticiones externas, optimizando el tráfico de red.
+## 4. DNS Server (BIND9)
+We implemented a DNS server for local resolution (forward and reverse zones for `debianserver.com`) and to act as a cache for external requests, optimizing network traffic.
 
 ```bash
-# Instalación de dependencias
+# Dependency installation
 apt install bind9 bind9utils bind9-doc dnsutils
 ```
 
-### Configuración Global (`/etc/bind/named.conf.options`)
+### Global Configuration (`/etc/bind/named.conf.options`)
 ```bind
 acl "red_aislada" {
     127.0.0.0/8;
@@ -109,7 +106,7 @@ options {
 };
 ```
 
-### Declaración de Zonas (`/etc/bind/named.conf.local`)
+### Zone Declaration (`/etc/bind/named.conf.local`)
 ```bind
 zone "debianserver.com" IN {
     type master;
@@ -121,7 +118,7 @@ zone "50.168.192.in-addr.arpa" IN {
 };
 ```
 
-### Configuración archivo `/etc/bind/db.debianserver.com`
+### File Configuration `/etc/bind/db.debianserver.com`
 ```
 ;
 ; BIND reverse data file for local loopback interface
@@ -142,7 +139,7 @@ www IN	A 192.168.50.1
 ftp IN	A 192.168.50.1
 ```
 
-### Configuración archivo `/etc/bind/db.192.168.50`
+### File Configuration `/etc/bind/db.192.168.50`
 ```
 ;
 ; BIND reverse data file for local loopback interface
@@ -165,21 +162,21 @@ $TTL	604800
 
 
 ```bash
-# Reiniciar y verificar el servicio
+# Restart and verify the service
 systemctl restart bind9
 systemctl status bind9.service
 ```
 
 ---
 
-## 5. Servidor DHCP (ISC-DHCP-Server)
-Automatizamos la asignación de direcciones IP, puerta de enlace y DNS a los equipos clientes conectados a la interfaz interna (`enp7s0`).
+## 5. DHCP Server (ISC-DHCP-Server)
+We automated the assignment of IP addresses, gateway, and DNS to the client machines connected to the internal interface (`enp7s0`).
 
 ```bash
 apt install isc-dhcp-server
 ```
 
-### Configuración Principal (`/etc/dhcp/dhcpd.conf`)
+### Main Configuration (`/etc/dhcp/dhcpd.conf`)
 ```dhcp
 default-lease-time 600;
 max-lease-time 7200;
@@ -191,79 +188,80 @@ subnet 192.168.50.0 netmask 255.255.255.0 {
     option domain-name-servers 192.168.50.1;
 }
 ```
-###  Definir la interfaz de escucha en `/etc/default/isc-dhcp-server`
+### Define the listening interface in `/etc/default/isc-dhcp-server`
 ```
 INTERFACESv4="enp7s0"
 ```
 
 ```bash
-# Reiniciar servicio
+# Restart service
 systemctl restart isc-dhcp-server.service
 ```
 
 ---
 
-## 6. Almacenamiento de Alto Rendimiento (RAID 5+0)
-Creamos un volumen lógico robusto utilizando la utilidad `mdadm` para combinar las ventajas de paridad (tolerancia a fallos de RAID 5) y distribución de datos (rendimiento de RAID 0).
+## 6. High-Performance Storage (RAID 5+0)
+We created a robust logical volume using the `mdadm` utility to combine the advantages of parity (RAID 5 fault tolerance) and data striping (RAID 0 performance).
 
 ```bash
-# Instalación de mdadm
+# mdadm installation
 apt install mdadm
 
-# 1. Creación de dos grupos RAID 5 base (3 discos cada uno)
+# 1. Creation of two base RAID 5 arrays (3 disks each)
 mdadm --create --verbose /dev/md1 --level=5 --raid-devices=3 /dev/vdb /dev/vdc /dev/vdd
 mdadm --create --verbose /dev/md2 --level=5 --raid-devices=3 /dev/vde /dev/vdf /dev/vdg
 
-# 2. Creación del RAID 0 (Uniendo los dos RAID 5 previos)
+# 2. RAID 0 Creation (Joining the two previous RAID 5 arrays)
 mdadm --create --verbose /dev/md0 --level=0 --raid-devices=2 /dev/md1 /dev/md2
 
-# 3. Formateo y Montaje
+# 3. Formatting and Mounting
 mkfs.ext4 /dev/md0
 mkdir -p /mnt/raid50
 mount /dev/md0 /mnt/raid50/
 
-# 4. Persistencia en /etc/fstab (Usando el UUID obtenido con blkid)
+# 4. Persistence in /etc/fstab (Using the UUID obtained with blkid)
 # UUID=88c15ba7-4b3d-49e1-aa46-b6fbaedfdc0f /mnt/raid50 ext4 defaults,nofail 0 0
 ```
 
 ---
 
-## 7. Entorno Enjaulado para Transferencia de Archivos (SFTP Chroot)
-Creamos un espacio seguro de almacenamiento de archivos compartido restringiendo el acceso del usuario mediante `chroot`, evitando que navegue por el sistema de archivos principal o inicie sesiones de terminal.
+## 7. Chrooted Environment for File Transfer (SFTP Chroot)
+We created a secure shared file storage space by restricting user access using `chroot`, preventing them from browsing the main file system or starting terminal sessions.
 
 ```bash
-# 1. Crear usuario sin acceso a shell (/bin/false)
+# 1. Create user without shell access (/bin/false)
 adduser --shell /bin/false ftpuser
 
-# 2. Crear la estructura de directorios para la 'jaula'
+# 2. Create the directory structure for the 'jail'
 mkdir -p /mnt/raid50/compartido
 chown root:root /mnt/raid50/compartido
 chmod 755 /mnt/raid50/compartido/
 
-# 3. Crear directorio interno con permisos de escritura para el usuario
+# 3. Create internal directory with write permissions for the user
 mkdir -p /mnt/raid50/compartido/archivos
 chown ftpuser:ftpuser /mnt/raid50/compartido/archivos/
 chmod 755 /mnt/raid50/compartido/archivos/
 
-# 4. Autorizar llave SSH manualmente para el usuario SFTP
-# Como el usuario tiene /bin/false, no se puede usar ssh-copy-id. 
-# LA LLAVE PUBLICA (CREADA EN LA MAQUINA CLIENTE) DEBE PEGARSE MANUALMENTE
+# 4. Manually authorize SSH key for the SFTP user
+# Since the user has /bin/false, ssh-copy-id cannot be used. 
+# THE PUBLIC KEY (CREATED ON THE CLIENT MACHINE) MUST BE PASTED MANUALLY
 
-# 5. Crear el directorio oculto ssh en el home del usuario
+# 5. Create the hidden ssh directory in the user's home
 mkdir -p /home/ftpuser/.ssh
 
-# 6. Creamos el archivo de las llaves autorizadas
+# 6. We create the authorized keys file
 touch /home/ftpuser/.ssh/authorized_keys
 
-# 7. aqui debes abrir el archivo con nano y pegar la llave publica del cliente
+# 7. here you must open the file with nano and paste the client's public key
 nano /home/ftpuser/.ssh/authorized_keys
 
-# 8. Asignamos permisos estrictos requeridos por el servicio SSH
+# 8. We assign strict permissions required by the SSH service
 chown -R ftpuser:ftpuser /home/ftpuser/.ssh
 chmod 700 /home/ftpuser/.ssh
 chmod 600 /home/ftpuser/.ssh/authorized_keys
+```
 
-### Configuración en `/etc/ssh/sshd_config`
+### Configuration in `/etc/ssh/sshd_config`
 ```sshd-config
 Match User ftpuser
     ForceCommand internal-sftp
@@ -275,146 +273,146 @@ Match User ftpuser
 
 ---
 
-## 8. Fortalecimiento de Seguridad (SSH Hardening)
-Incrementamos la seguridad del acceso remoto al servidor utilizando autenticación mediante criptografía (ED25519), mitigando ataques de fuerza bruta.
+## 8. Security Hardening (SSH Hardening)
+We increased the security of remote access to the server using cryptography-based authentication (ED25519), mitigating brute force attacks.
 
 ```bash
-# 1. Generación de par de llaves criptográficas de alta seguridad
+# 1. Generation of high-security cryptographic key pair
 ssh-keygen -t ed25519 -C "admin_keys"
 
-# 2. Exportar la llave pública al servidor remoto
+# 2. Export the public key to the remote server
 ssh-copy-id admin@192.168.122.104
 
-> NOTA: El comando ssh-copy-id solo funciona para usuarios con acceso a terminal. 
-> Para usuarios con /bin/false (como ftpuser), la llave debe copiarse 
-> manualmente en /home/usuario/.ssh/authorized_keys.
+> NOTE: The ssh-copy-id command only works for users with terminal access. 
+> For users with /bin/false (like ftpuser), the key must be copied 
+> manually to /home/user/.ssh/authorized_keys.
 
-# 3. Despues de configurar la llave publica, creamos una copia de respaldo
+# 3. After configuring the public key, we create a backup copy
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
 
-# 4. Despues de cada cambio, probamos la configuración
+# 4. After each change, we test the configuration
 sshd -t
 
-# 5. Si el comando no muestra ninguna salida, la configuración es válida. Despues reiniciamos el servicio SSH
+# 5. If the command shows no output, the configuration is valid. Then we restart the SSH service
 
 systemctl restart ssh
 systemctl restart sshd
 
 ```
 
-### Editamos el archivo `/etc/ssh/sshd_config/`
+### We edit the file `/etc/ssh/sshd_config/`
 
-La autenticación basada en llaves es mas segura a comparación de la autenticacion por contraseña
+Key-based authentication is more secure compared to password authentication
 ```sshd-config
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PubkeyAuthentication yes
 ```
 
-Deshabilitados el acceso del usuario root
+Disabled root user access
 ```sshd-config
 PermitRootLogin no
 ```
-(OPCIONAL) Permitirmos el acceso por root solamente por llave SSH
+(OPTIONAL) We allow root access only via SSH key
 ```sshd-config
 PermitRootLogin prohibit-password
 ```
-Cambiamos el puerto por defecto
+We change the default port
 ```sshd-config
 Port 2222
 ```
-Permitimos el acceso solo a los usuarios admin y ftpuser
+We allow access only to the admin and ftpuser users
 ```sshd-config
 AllowUsers admin ftpuser
 ```
-(OPCIONAL) Permitimos el acceso solo por grupos Ej:sshusers
+(OPTIONAL) We allow access only by groups Ex: sshusers
 
-***IMPORTANTE: crear el grupo y los usuarios en el. De lo contrario, no habra acceso.***
+***IMPORTANT: create the group and the users in it. Otherwise, there will be no access.***
 ```sshd-config
  AllowGroups sshusers
 ```
-Desactivamos las contraseñas vacias
+We disable empty passwords
 ```sshd-config
 PermitEmptyPasswords no
 ```
-Definimos 30 segundos de espera para que el usuario se autentique
+We define a 30-second wait for the user to authenticate
 ```sshd-config
 LoginGraceTime 30
 ```
-Limitamos los intentos de autenticación
+We limit authentication attempts
 ```sshd-config
 MaxAuthTries 3
 ```
-Desactivamos X11Forwarding
+We disable X11Forwarding
 ```sshd-config
 X11Forwarding no
 ```
-Desactivamos el uso de agentes para servidores remotos
+We disable the use of agents for remote servers
 ```sshd-config
 AllowAgentForwarding no
 ```
-Desactivamos el uso de tuneles SSH
+We disable the use of SSH tunnels
 ```sshd-config
 AllowTcpForwarding no
 ```
 
 
-Permitimos un tiempo maximo de 10 minutos para sesiones inactivas
+We allow a maximum time of 10 minutes for inactive sessions
 ```sshd-config
 ClientAliveInterval 300
 ClientAliveCountMax 2
 ```
 
-Creamos un banner y le agregamos un mensaje
+We create a banner and add a message to it
 ```bash
 >/etc/ssh/banner
 echo "Authorized access only. All activity is monitored and logged." >> /etc/ssh/banner
 ```
 
-Habilitamos el banner en `/etc/ssh/sshd_config`
+We enable the banner in `/etc/ssh/sshd_config`
 ```sshd
 Banner /etc/ssh/banner
 ```
 
 
-### Comprobación
-Ejecutamos el comando `sshd -t` para verificar si hay errores de syntaxis
+### Verification
+We execute the `sshd -t` command to check for syntax errors
 ```bash
 sshd -t 
 ```
-Si la salida no muestra ningun texto, la configuración esta bien.
+If the output shows no text, the configuration is fine.
 
 
 
 ___
 ## 9. Apache
-Instalamos y habilitamos un servidor web. El cual, proporcionara información al usuario final.
+We install and enable a web server. Which will provide information to the end user.
 
-Instalamos el servicio 
+We install the service 
 ```bash
 apt install apache2 -y
 ```
-Verificamos si esta activo 
+We check if it is active 
 ```bash
 systemctl status apache2 --no-pager
 ```
 
 ---
 ## 10. Fail2Ban
-Añadimos una capa extra de seguridad a SSH y apache, con fail2ban diversos ataques no tendrán mucho sentido
+We add an extra layer of security to SSH and Apache, with fail2ban various attacks will not make much sense.
 
 ### SSH
 
 ```bash
-# Instalamos el paquete
+# We install the package
 apt install fail2ban
 
-# Creamos el archivo sshd.local
+# We create the sshd.local file
 >/etc/fail2ban/jail.d/sshd.local
 
 ```
 
-### Añadimos las siguientes lineas al archivo `/etc/fail2ban/jail.d/sshd.local`
+### We add the following lines to the file `/etc/fail2ban/jail.d/sshd.local`
 
 ```
 [sshd]
@@ -430,21 +428,21 @@ port = 2222
 
 
 ```bash
-# La documentación de fail2ban recomienda hacer todos los cambios en el archivo jail.local
+# The fail2ban documentation recommends making all changes in the jail.local file
 
 >/etc/fail2ban/jail.local
 ```
 
-### Agregamos las siguientes reglas en `/etc/fail2ban/jail.local`
+### We add the following rules in `/etc/fail2ban/jail.local`
 ```
-# Bloquea intentos de adivinar contraseñas (si usas autenticación básica en Apache)
+# Blocks attempts to guess passwords (if you use basic authentication in Apache)
 [apache-auth]
 enabled  = true
 port     = http,https
 logpath  = %(apache_error_log)s
 maxretry = 3
 
-# Bloquea bots conocidos por buscar vulnerabilidades o hacer spam
+# Blocks bots known for seeking vulnerabilities or spamming
 [apache-badbots]
 enabled  = true
 port     = http,https
@@ -452,21 +450,21 @@ logpath  = %(apache_access_log)s
 bantime  = 48h
 maxretry = 1
 
-# Bloquea IPs que buscan scripts maliciosos (ej. .php que no existen)
+# Blocks IPs looking for malicious scripts (e.g. .php that do not exist)
 [apache-noscript]
 enabled  = true
 port     = http,https
 logpath  = %(apache_error_log)s
 maxretry = 3
 
-# Bloquea intentos de desbordamiento de búfer (ataques complejos)
+# Blocks buffer overflow attempts (complex attacks)
 [apache-overflows]
 enabled  = true
 port     = http,https
 logpath  = %(apache_error_log)s
 maxretry = 2
 
-# Bloquea a quienes buscan directorios /home ocultos
+# Blocks those looking for hidden /home directories
 [apache-nohome]
 enabled  = true
 port     = http,https
@@ -474,14 +472,14 @@ logpath  = %(apache_error_log)s
 maxretry = 2
 ```
 
-### Iniciamos y habilitamos el servicio
+### We start and enable the service
 
 ```bash
 systemctl enable fail2ban && systemctl start fail2ban
 ```
 
 
-### Para verificar el estatus 
+### To check the status 
 ```bash
 fail2ban-client status
 ```
@@ -489,13 +487,13 @@ fail2ban-client status
 
 ___
 ## 11. UFW 
-Con UFW habilitaremos los puertos solamente para los servicios necesarios. Adicional a eso, activaremos las reglas de enrutamiento entre redes y a nivel de kernel.
+With UFW we will enable the ports only for the necessary services. In addition to that, we will activate the routing rules between networks and at the kernel level.
 ```bash
-# instalamos el paquete
+# we install the package
 apt install ufw -y
 ```
 
-### Asignamos la siguiente regla para NAT en `/etc/ufw/before.rules`
+### We assign the following NAT rule in `/etc/ufw/before.rules`
 ```
 *nat
 :POSTROUTING ACCEPT [0:0]
@@ -503,14 +501,14 @@ apt install ufw -y
 COMMIT
 ```
 
-### Permitimos los servicios locales
+### We allow local services
 
 ```bash
 # SSH
 ufw allow 2222/tcp
 
-# Permitir DNS y DHCP solo desde la interfaz de red interna (LAN - enp7s0)
-# Esto evita exponer tus servicios a la WAN (enp1s0)
+# Allow DNS and DHCP only from the internal network interface (LAN - enp7s0)
+# This prevents exposing your services to the WAN (enp1s0)
 
 ufw allow in on enp7s0 to any port 53
 ufw allow in on enp7s0 to any port 67 proto udp
@@ -519,63 +517,62 @@ ufw allow in on enp7s0 to any port 67 proto udp
 ufw allow in on enp7s0 to any app 'Apache Full'
 ```
 
-### Habilitamos el enrutamiento entre las tarjetas de red
+### We enable routing between the network cards
 
 ```bash
-# Permitir tráfico desde la LAN a la WAN
+# Allow traffic from the LAN to the WAN
 ufw route allow in on enp7s0 out on enp1s0
 ```
-### Habilitamos el enrutamiento a nivel de kernel en el archivo `/etc/ufw/sysctl.conf` descomentanto la siguiente linea
+### We enable kernel-level routing in the `/etc/ufw/sysctl.conf` file by uncommenting the following line
 
 ```
 net/ipv4/ip_forward=1
 ```
 
 
-### Deshabilitamos y detenemos netfilter-persistent
+### We disable and stop netfilter-persistent
 ```bash
 systemctl disable netfilter-persistent
 systemctl stop netfilter-persistent
 
 ```
-### Recargamos el firewall
+### We reload the firewall
 ```bash
 ufw disable
 ufw enable
 ```
 
 
-### Recargamos fail2ban
+### We reload fail2ban
 ```bash
 systemctl restart fail2ban
 ```
 
 ___
 
-## Pruebas y ensayos
-La implementación se validó utilizando dos maquinas clientes: Windows 10 y Ubuntu 25.10 dentro de la misma red virtual, Los casos de pruebas exitosos incluyeron
-1. Enrutamiento entre dos interfazes de red 
-2. Asignación dinámica de IP y asignación de sufijo DNS mediante DHCP
-3. Enmascaramiento NAT, donde las solicitudes provenientes de los clientes de la red aislada son traducidas y enviadas hacia internet mediante el servidor 
-4. DNS exitoso mediante pruebas con el comando `ping` y `nslookup`
-5. Acceso remoto seguro mediante "SSH hardening"
-6. Transferencia segura de archivos mediante SFTP al arreglo RAID 50
-7. Visualización correcta de la página web interna alojada en Apache.
+## Testing and trials
+The implementation was validated using two client machines: Windows 10 and Ubuntu 25.10 within the same virtual network. Successful test cases included:
+1. Routing between two network interfaces 
+2. Dynamic IP assignment and DNS suffix assignment via DHCP
+3. NAT masquerading, where requests coming from isolated network clients are translated and sent to the internet through the server 
+4. Successful DNS via tests with the `ping` and `nslookup` commands
+5. Secure remote access via "SSH hardening"
+6. Secure file transfer via SFTP to the RAID 50 array
+7. Correct display of the internal web page hosted on Apache.
 
 ___
 
-## Notas para el repositorio
-*Las capturas de pantalla que muestran:*
-*  *Resolución DNS*
-*  *Acceso de SFTP*
-*  *Acceso SSH*
-*  *Asignacion de IPs mediante DHCP*
-*  *Servidor web apache2*
-*  *Subida de archivos al arreglo RAID 50*
+## Repository Notes
+*The screenshots showing:*
+*  *DNS Resolution*
+*  *SFTP Access*
+*  *SSH Access*
+*  *IP Assignment via DHCP*
+*  *Apache2 web server*
+*  *File upload to the RAID 50 array*
 
-*Se han archivado en el directorio `docs/client.pdf`*
+*Have been archived in the `docs/client.pdf` directory.*
 
-*De igual manera la configuracion de SFTP y SSH se encuentran en `docs/SFTP.pdf` y `docs/SSH.pdf`*
+*Similarly, the SFTP and SSH configuration can be found in `docs/SFTP.pdf` and `docs/SSH.pdf`*
 
-*Los archivos de configuracion de SSH, DHCP, DNS, Fail2Ban, Netplan se encuentran en el directorio `configs/`*
-
+*The configuration files for SSH, DHCP, DNS, Fail2Ban, Netplan are located in the `configs/` directory*
