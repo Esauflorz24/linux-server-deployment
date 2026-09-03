@@ -191,11 +191,12 @@ subnet 192.168.50.0 netmask 255.255.255.0 {
     option domain-name-servers 192.168.50.1;
 }
 ```
+###  Definir la interfaz de escucha en `/etc/default/isc-dhcp-server`
+```
+INTERFACESv4="enp7s0"
+```
 
 ```bash
-# Definir la interfaz de escucha en /etc/default/isc-dhcp-server
-INTERFACESv4="enp7s0"
-
 # Reiniciar servicio
 systemctl restart isc-dhcp-server.service
 ```
