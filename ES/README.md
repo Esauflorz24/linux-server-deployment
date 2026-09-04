@@ -12,7 +12,7 @@
 
 ***Idiomas***
 - 🇪🇸️ Español
-- [🇺🇲️ Ingles](https://github.com/Esauflorz24/linux-server-deployment)
+- [🇺🇲️ English](https://github.com/Esauflorz24/linux-server-deployment)
 
 ## Tabla de Contenidos
 - [Descripción del Proyecto](#descripción-del-proyecto)
