@@ -10,6 +10,25 @@
 
 **Estado del Proyecto:** en proceso  | **Rol:** Administrador de Sistemas / Ingeniero de Redes
 
+***Idiomas***
+- 🇪🇸️ Español
+- [🇺🇲️ Ingles](./README.md)
+
+## Tabla de Contenidos
+- [Descripción del Proyecto](#descripción-del-proyecto)
+- [Gestión de Usuarios y Privilegios](#gestión-de-usuarios-y-privilegios)
+- [Configuración de Redes](#configuración-de-redes)
+- [Servidor DNS (BIND9)](#servidor-dns-bind9)
+- [Servidor DHCP (ISC-DHCP-Server)](#servidor-dhcp-isc-dhcp-server)
+- [Almacenamiento de Alto Rendimiento (RAID 5+0)](#almacenamiento-de-alto-rendimiento-raid-50)
+- [Entorno Enjaulado para Transferencia de Archivos (SFTP Chroot)](#entorno-enjaulado-para-transferencia-de-archivos-sftp-chroot)
+- [Fortalecimiento de Seguridad (SSH Hardening)](#fortalecimiento-de-seguridad-ssh-hardening)
+- [Apache](#apache)
+- [Fail2Ban](#fail2ban)
+- [UFW](#ufw)
+- [Pruebas y ensayos](#pruebas-y-ensayos)
+- [Notas para el repositorio](#notas-para-el-repositorio)
+
 
 ## Descripción del Proyecto
 Este documento detalla la implementación y configuración 
