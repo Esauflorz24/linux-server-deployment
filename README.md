@@ -10,8 +10,13 @@
 
 **Project Status:** in progress  | **Role:** Systems Administrator / Network Engineer
 
+# Table of Contents
+- [Overview](#overview)
+- [User and Privilege Management](#user-and-privilege-management)
+- [Network Configuration](#network-configuration)
 
-## Project Description
+
+## Overview
 This document details the implementation and comprehensive configuration of a Debian Linux-based enterprise server.
 The project covers everything from initial network and routing configuration,
 to the implementation of critical services (DNS and DHCP), 
@@ -24,7 +29,7 @@ network services architecture, and the application of security policies.
 
 ---
 
-## 1. User and Privilege Management
+## User and Privilege Management
 We create a dedicated administrator user for maintenance, monitoring, automation, and diagnostic tasks, reducing reliance on the `root` user for security reasons.
 
 ```bash
@@ -38,7 +43,7 @@ usermod -aG sudo admin
 
 ---
 
-## 2. Network Configuration (Migration to Netplan and Systemd-networkd)
+##  Network Configuration
 We modernized network interface management by migrating from the traditional `ifupdown` to `systemd-networkd` and `Netplan`, standardizing network configuration using YAML for greater scalability.
 
 ### Enabling modern services
@@ -77,7 +82,7 @@ network:
 
 ---
 
-## 4. DNS Server (BIND9)
+## DNS Server (BIND9)
 We implemented a DNS server for local resolution (forward and reverse zones for `debianserver.com`) and to act as a cache for external requests, optimizing network traffic.
 
 ```bash
@@ -169,7 +174,7 @@ systemctl status bind9.service
 
 ---
 
-## 5. DHCP Server (ISC-DHCP-Server)
+## DHCP Server (ISC-DHCP-Server)
 We automated the assignment of IP addresses, gateway, and DNS to the client machines connected to the internal interface (`enp7s0`).
 
 ```bash
@@ -200,7 +205,7 @@ systemctl restart isc-dhcp-server.service
 
 ---
 
-## 6. High-Performance Storage (RAID 5+0)
+## High-Performance Storage (RAID 5+0)
 We created a robust logical volume using the `mdadm` utility to combine the advantages of parity (RAID 5 fault tolerance) and data striping (RAID 0 performance).
 
 ```bash
@@ -225,7 +230,7 @@ mount /dev/md0 /mnt/raid50/
 
 ---
 
-## 7. Chrooted Environment for File Transfer (SFTP Chroot)
+## Chrooted Environment for File Transfer (SFTP Chroot)
 We created a secure shared file storage space by restricting user access using `chroot`, preventing them from browsing the main file system or starting terminal sessions.
 
 ```bash
@@ -273,7 +278,7 @@ Match User ftpuser
 
 ---
 
-## 8. Security Hardening (SSH Hardening)
+## Security Hardening (SSH Hardening)
 We increased the security of remote access to the server using cryptography-based authentication (ED25519), mitigating brute force attacks.
 
 ```bash
@@ -385,7 +390,7 @@ If the output shows no text, the configuration is fine.
 
 
 ___
-## 9. Apache
+## Apache
 We install and enable a web server. Which will provide information to the end user.
 
 We install the service 
@@ -398,7 +403,7 @@ systemctl status apache2 --no-pager
 ```
 
 ---
-## 10. Fail2Ban
+## Fail2Ban
 We add an extra layer of security to SSH and Apache, with fail2ban various attacks will not make much sense.
 
 ### SSH
@@ -486,7 +491,7 @@ fail2ban-client status
 
 
 ___
-## 11. UFW 
+## UFW 
 With UFW we will enable the ports only for the necessary services. In addition to that, we will activate the routing rules between networks and at the kernel level.
 ```bash
 # we install the package
