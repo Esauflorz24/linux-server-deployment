@@ -27,7 +27,7 @@ arquitectura de servicios de red y aplicación de políticas de seguridad.
 
 ---
 
-## 1. Gestión de Usuarios y Privilegios
+## Gestión de Usuarios y Privilegios
 Creamos un usuario administrador dedicado para tareas de mantenimiento, monitoreo, automatización y diagnóstico, reduciendo la dependencia del usuario `root` por motivos de seguridad.
 
 ```bash
@@ -41,7 +41,7 @@ usermod -aG sudo admin
 
 ---
 
-## 2. Configuración de Redes (Migración a Netplan y Systemd-networkd)
+## Configuración de Redes 
 Modernizamos la gestión de interfaces de red migrando del tradicional `ifupdown` a `systemd-networkd` y `Netplan`, estandarizando la configuración de red mediante YAML para mayor escalabilidad.
 
 ### Habilitación de servicios modernos
@@ -80,7 +80,7 @@ network:
 
 ---
 
-## 4. Servidor DNS (BIND9)
+## Servidor DNS (BIND9)
 Implementamos un servidor DNS para resolución local (zonas directas e inversas para `debianserver.com`) y actuar como caché para peticiones externas, optimizando el tráfico de red.
 
 ```bash
@@ -172,7 +172,7 @@ systemctl status bind9.service
 
 ---
 
-## 5. Servidor DHCP (ISC-DHCP-Server)
+## Servidor DHCP (ISC-DHCP-Server)
 Automatizamos la asignación de direcciones IP, puerta de enlace y DNS a los equipos clientes conectados a la interfaz interna (`enp7s0`).
 
 ```bash
@@ -203,7 +203,7 @@ systemctl restart isc-dhcp-server.service
 
 ---
 
-## 6. Almacenamiento de Alto Rendimiento (RAID 5+0)
+## Almacenamiento de Alto Rendimiento (RAID 5+0)
 Creamos un volumen lógico robusto utilizando la utilidad `mdadm` para combinar las ventajas de paridad (tolerancia a fallos de RAID 5) y distribución de datos (rendimiento de RAID 0).
 
 ```bash
@@ -228,7 +228,7 @@ mount /dev/md0 /mnt/raid50/
 
 ---
 
-## 7. Entorno Enjaulado para Transferencia de Archivos (SFTP Chroot)
+## Entorno Enjaulado para Transferencia de Archivos (SFTP Chroot)
 Creamos un espacio seguro de almacenamiento de archivos compartido restringiendo el acceso del usuario mediante `chroot`, evitando que navegue por el sistema de archivos principal o inicie sesiones de terminal.
 
 ```bash
@@ -275,7 +275,7 @@ Match User ftpuser
 
 ---
 
-## 8. Fortalecimiento de Seguridad (SSH Hardening)
+## Fortalecimiento de Seguridad (SSH Hardening)
 Incrementamos la seguridad del acceso remoto al servidor utilizando autenticación mediante criptografía (ED25519), mitigando ataques de fuerza bruta.
 
 ```bash
@@ -387,7 +387,7 @@ Si la salida no muestra ningun texto, la configuración esta bien.
 
 
 ___
-## 9. Apache
+## Apache
 Instalamos y habilitamos un servidor web. El cual, proporcionara información al usuario final.
 
 Instalamos el servicio 
@@ -400,7 +400,7 @@ systemctl status apache2 --no-pager
 ```
 
 ---
-## 10. Fail2Ban
+## Fail2Ban
 Añadimos una capa extra de seguridad a SSH y apache, con fail2ban diversos ataques no tendrán mucho sentido
 
 ### SSH
@@ -488,7 +488,7 @@ fail2ban-client status
 
 
 ___
-## 11. UFW 
+## UFW 
 Con UFW habilitaremos los puertos solamente para los servicios necesarios. Adicional a eso, activaremos las reglas de enrutamiento entre redes y a nivel de kernel.
 ```bash
 # instalamos el paquete
