@@ -10,6 +10,10 @@
 
 **Project Status:** in progress  | **Role:** Systems Administrator / Network Engineer
 
+***Language***
+- [🇪🇸️ Español](./ES/README.md)
+- [🇺🇲️ English]
+
 # Table of Contents
 - [Overview](#overview)
 - [User and Privilege Management](#user-and-privilege-management)
