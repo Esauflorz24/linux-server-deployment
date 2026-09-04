@@ -14,6 +14,16 @@
 - [Overview](#overview)
 - [User and Privilege Management](#user-and-privilege-management)
 - [Network Configuration](#network-configuration)
+- [DNS Server (BIND9)](#dns-server-bind9)
+- [DHCP Server (ISC-DHCP-Server)](#dhcp-server-isc-dhcp-server)
+- [High-Performance Storage (RAID 5+0)](#high-performance-storage-raid-50)
+- [Chrooted Environment for File Transfer (SFTP Chroot)](#chrooted-environment-for-file-transfer-sftp-chroot)
+- [Security Hardening (SSH Hardening)](#security-hardening-ssh-hardening)
+- [Apache](#apache)
+- [Fail2Ban](#fail2ban)
+- [UFW](#ufw)
+- [Testing and trials](#testing-and-trials)
+- [Repository Notes](#repository-notes)
 
 
 ## Overview
