@@ -12,7 +12,7 @@
 
 ***Language***
 - [🇪🇸️ Español](./ES/README.md)
-- [🇺🇲️ English]
+- 🇺🇲️ English
 
 # Table of Contents
 - [Overview](#overview)
